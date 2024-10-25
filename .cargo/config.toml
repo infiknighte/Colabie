@@ -1,0 +1,2 @@
+[alias]
+make = "run --package xtasks --bin make"

@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+
+members = [
+  "clientie",
+
+  # Internals
+  "xtasks"
+]
+
+[profile.release.package.clientie]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
