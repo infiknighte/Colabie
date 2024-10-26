@@ -1,2 +1,3 @@
 [alias]
 make = "run --package xtasks --bin make"
+serve = "run --package xtasks --bin serve"
