@@ -3,6 +3,8 @@ resolver = "2"
 
 members = [
   "clientie",
+  "registrie",
+  "schemou",
 
   # Internals
   "xtasks"

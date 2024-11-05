@@ -1,0 +1,7 @@
+[package]
+name = "schemou"
+version = "0.0.1-pr"
+edition = "2021"
+
+[dependencies]
+bitcode = { version = "0", features = ["derive"], default-features = false }

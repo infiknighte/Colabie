@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script type="module">
+  import init, {register} from "./wasm/clientie.js";
+
+  init().then(() => {
+    const usernameField = document.getElementById("username");
+    const registerBtn = document.getElementById("register");
+
+    registerBtn.addEventListener("click", () => {
+      register(usernameField.value);
+    });
+  });
+
+</script>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Colabie | Register</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
+
+<body>
+  <h1>Register a new account to Colabie index</h1>
+  Username: <input id="username" type="text"><br>
+  <button id="register">Register</button>
+</body>
+
+</html>
