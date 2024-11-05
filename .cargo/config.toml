@@ -1,3 +1,4 @@
 [alias]
-make = "run --package xtasks --bin make"
-serve = "run --package xtasks --bin serve"
+x = "run --package xtasks"
+make = "run --package xtasks make"
+qdr = "run --package xtasks quick-dev-registrie"
