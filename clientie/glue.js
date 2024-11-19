@@ -10,3 +10,11 @@ export async function post_raw(url, body) {
   });
   return new Uint8Array(await response.arrayBuffer());
 }
+
+export function save_raw(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+export function load_raw(key) {
+  return new Uint8Array(JSON.parse(localStorage.getItem(key)));
+}

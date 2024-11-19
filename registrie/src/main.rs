@@ -28,7 +28,7 @@ async fn register(BitCode(register_req): BitCode<RegisterReq>) -> BitCode<Regist
     BitCode(RegisterRes { commit_id })
 }
 
-fn register_user(username: &str, pubkey: &str) -> Box<str> {
+fn register_user(username: &str, pubkey: &[u8]) -> Box<str> {
     // TODO: Store in a real registrie
-    format!("idx{username}:{pubkey}").into()
+    format!("idx{}:{:#?}", username, pubkey).into()
 }

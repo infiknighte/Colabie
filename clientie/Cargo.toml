@@ -12,5 +12,9 @@ wasm-bindgen-futures = "0.4"
 schemou = { path = "../schemou" }
 bitcode = { version = "0", features = ["derive"], default-features = false }
 
+fips204 = "0.4"
+rand_chacha = "0.3"
+getrandom = { version = "0.2", features = ["js"] }
+
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
