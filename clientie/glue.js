@@ -16,5 +16,10 @@ export function save_raw(key, value) {
 }
 
 export function load_raw(key) {
-  return new Uint8Array(JSON.parse(localStorage.getItem(key)));
+  let map = JSON.parse(localStorage.getItem(key))
+  return new Uint8Array(Object.keys(map).map((i) => map[i]))
+}
+
+export function log(msg) {
+  console.log(msg)
 }

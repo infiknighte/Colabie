@@ -12,6 +12,8 @@ extern "C" {
     async fn post_raw(url: &str, body: &[u8]) -> Result<Uint8Array, JsValue>;
 
     fn save_raw(key: &str, value: &[u8]);
+    fn load_raw(key: &str) -> Box<[u8]>;
+    fn log(msg: &str);
 }
 
 #[wasm_bindgen]
@@ -22,6 +24,8 @@ extern "C" {
 #[wasm_bindgen]
 pub async fn register(username: &str) -> Result<(), JsValue> {
     // TODO: Check if the username is already registere
+
+    // log(&format!("{:?}", load_raw("sk_key")));
 
     let (pb_key, sk_key) = generate_keypair();
 
