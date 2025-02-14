@@ -1,36 +1,51 @@
 use xtasks::*;
 
-use std::path::Path;
 use std::process::Command;
-use std::{fs, io};
+use std::io;
 
 const WEB_OUTPUT_DIR: &str = "target/web";
 
 pub fn build() -> io::Result<()> {
-    // Install wasm-pack if it's not already installed
-    if Command::new("wasm-pack").arg("--version").status().is_err() {
+    // Install wasm-bindgen if it's not already installed
+    if Command::new("wasm-bindgen")
+        .arg("--version")
+        .status()
+        .is_err()
+    {
         println!("[xtask]: Installing wasm-pack");
         Command::new("cargo")
-            .args(["install", "wasm-pack"])
+            .args(["install", "wasm-bindgen-cli"])
             .status()?
             .early_ret()?;
     }
 
     // Build Clientie
     println!("[xtask]: Building clientie");
-    Command::new("wasm-pack")
+    Command::new("cargo")
         .arg("build")
-        .arg("--no-typescript")
-        .args(["--target", "web"])
+        .arg("--release")
+        .arg("--package")
         .arg("clientie")
+        .arg("--target")
+        .arg("wasm32-unknown-unknown")
         .status()?
         .early_ret()?;
 
-    // Move the web files
+    _ = std::fs::remove_dir_all(WEB_OUTPUT_DIR);
+
+    println!("[xtasks]: Building wasm files");
+    Command::new("wasm-bindgen")
+        .arg("target/wasm32-unknown-unknown/release/clientie.wasm")
+        .arg("--no-typescript")
+        .arg("--target")
+        .arg("web")
+        .arg("--out-dir")
+        .arg(format!("{WEB_OUTPUT_DIR}/wasm"))
+        .status()?
+        .early_ret()?;
+
     println!("[xtask]: Moving clientie web files to target/web");
-    _ = fs::remove_dir_all(WEB_OUTPUT_DIR);
     copy_dir_all("clientie/web", WEB_OUTPUT_DIR)?;
-    fs::rename("clientie/pkg", Path::new(WEB_OUTPUT_DIR).join("wasm"))?;
 
     Ok(())
 }
