@@ -20,6 +20,3 @@ export function load_raw(key) {
   return new Uint8Array(Object.keys(map).map((i) => map[i]))
 }
 
-export function log(msg) {
-  console.log(msg)
-}
