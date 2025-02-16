@@ -12,6 +12,16 @@ use git2::{Repository, Signature};
 use nanoserde::{DeRon, SerRon};
 use tokio::{sync::Mutex, task::spawn_blocking};
 
+#[macro_export]
+macro_rules! erout {
+    ($err:expr) => {
+        $err.map_err(|err| {
+            ::tracing::error!("{err}");
+            err
+        })?
+    };
+}
+
 #[derive(Clone)]
 pub struct DB {
     git: Arc<Mutex<Repository>>,
@@ -34,14 +44,11 @@ impl DB {
             Repository::open_bare(path).unwrap_or_else(|_| DB::init_repo(path).unwrap()),
         ));
 
+        tracing::info!("openned git database repo");
         Self { git }
     }
 
-    pub async fn new_record(
-        &self,
-        username: String,
-        pubkey: String,
-    ) -> Result<git2::Oid, git2::Error> {
+    pub async fn new_record(&self, username: String, pubkey: String) -> git2::Oid {
         let record = Record { username, pubkey };
 
         let db = self.clone();
@@ -56,15 +63,20 @@ impl DB {
                 let repo = handle.block_on(async { db.git.lock().await });
                 let sig = Signature::now(AUTHOR, AUTHOR)?;
 
-                let last_commit = repo.find_commit(
-                    repo.find_branch(DEFAULT_BRANCH, git2::BranchType::Local)?
-                        .into_reference()
-                        .target()
-                        .unwrap(),
-                )?;
+                let reference = repo
+                    .find_branch(DEFAULT_BRANCH, git2::BranchType::Local)
+                    .expect("Defautl Branch")
+                    .into_reference();
+
+                let last_commit = repo
+                    .find_commit(reference.target().unwrap())
+                    .expect("head commit");
 
                 // TODO: Break registrie records into subdirs like "duskyelf" -> "du/sk/duskyelf"
-                let mut tree_builder = repo.treebuilder(Some(&last_commit.tree()?))?;
+                let mut tree_builder = repo
+                    .treebuilder(Some(&last_commit.tree()?))
+                    .expect("Tree building");
+
                 tree_builder.insert(&record.username, blob, 0o100644)?;
 
                 let tree = repo.find_tree(tree_builder.write()?)?;
@@ -73,9 +85,7 @@ impl DB {
                 #[allow(clippy::let_and_return)]
                 // TODO: Sign registrie git commits
                 let x = repo.commit(
-                    repo.find_branch(DEFAULT_BRANCH, git2::BranchType::Local)?
-                        .into_reference()
-                        .name(),
+                    reference.name(),
                     &sig,
                     &sig,
                     &format!("Register: {}", record.username),
@@ -87,16 +97,26 @@ impl DB {
         })
         .await
         .unwrap()
+        .unwrap()
     }
 
     fn init_repo(path: &str) -> Result<Repository, git2::Error> {
+        tracing::info!("initializing new git database repo");
         let repo = Repository::init_bare(path).expect("OS");
         {
             let sig = Signature::now(AUTHOR, AUTHOR)?;
             let tree = repo.find_tree(repo.treebuilder(None)?.write()?)?;
-            let commit =
-                repo.find_commit(repo.commit(None, &sig, &sig, "Initial Commit", &tree, &[])?)?;
-            repo.branch(DEFAULT_BRANCH, &commit, false)?;
+            let commit = repo.find_commit(erout!(repo.commit(
+                None,
+                &sig,
+                &sig,
+                "Initial Commit",
+                &tree,
+                &[]
+            )))?;
+
+            repo.branch(DEFAULT_BRANCH, &commit, false)
+                .expect("Default branch");
         }
         Ok(repo)
     }

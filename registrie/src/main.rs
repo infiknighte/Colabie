@@ -1,11 +1,12 @@
 use axum::{
     extract::State,
-    http::{header, Method, StatusCode},
+    http::{header, Method},
     routing::post,
     Router,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
-use tower_http::cors;
+use tower_http::{cors, trace::TraceLayer};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use registrie::*;
 use schemou::*;
@@ -14,6 +15,15 @@ const DB_PATH: &str = "db";
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                format!("{}=debug,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let db = DB::get_or_create(DB_PATH);
 
     let cors = cors::CorsLayer::new()
@@ -24,25 +34,31 @@ async fn main() {
     let router = Router::new()
         .route("/register", post(register))
         .with_state(db)
-        .layer(cors);
+        .layer(cors)
+        .layer(
+            TraceLayer::new_for_http()
+                // By default `TraceLayer` will log 5xx responses but we're doing our specific
+                // logging of errors so disable that
+                .on_failure(()),
+        );
 
     let address = "0.0.0.0:8081";
     let listner = tokio::net::TcpListener::bind(address).await.unwrap();
-    println!("->> Listening on: http://{}\n", address);
+    tracing::info!("listening on: http://{}\n", address);
     axum::serve(listner, router).await.unwrap();
 }
 
 async fn register(
     State(db): State<DB>,
     BitCode(register_req): BitCode<RegisterReq>,
-) -> Result<BitCode<RegisterRes>, StatusCode> {
+) -> BitCode<RegisterRes> {
+    // TODO: Validation of user request
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
         .new_record(register_req.username.into(), pubkey)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .as_bytes()
         .into();
 
-    Ok(BitCode(RegisterRes { commit_id }))
+    BitCode(RegisterRes { commit_id })
 }
