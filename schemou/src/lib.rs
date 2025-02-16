@@ -8,5 +8,5 @@ pub struct RegisterReq {
 
 #[derive(Encode, Decode, Debug)]
 pub struct RegisterRes {
-    pub commit_id: Box<str>,
+    pub commit_id: Box<[u8]>,
 }

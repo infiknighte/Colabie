@@ -47,9 +47,9 @@ pub async fn register(username: &str) -> Result<(), JsValue> {
         .await?
         .to_vec(),
     )
-    .map_err(|_| JsValue::from_str("Invalid Response"))?;
+    .map_err(|e| JsValue::from_str(&format!("Invalid Response: {e}")))?;
 
-    alert(&format!("Registered: {}", resp.commit_id));
+    alert(&format!("Registered: {:#?}", resp.commit_id));
 
     Ok(())
 }
