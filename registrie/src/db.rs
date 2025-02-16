@@ -1,26 +1,10 @@
 use std::sync::Arc;
 
-use axum::{
-    async_trait,
-    body::Bytes,
-    extract::{FromRequest, Request},
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
-use bitcode::{DecodeOwned, Encode};
 use git2::{Repository, Signature};
 use nanoserde::{DeRon, SerRon};
 use tokio::{sync::Mutex, task::spawn_blocking};
 
-#[macro_export]
-macro_rules! erout {
-    ($err:expr) => {
-        $err.map_err(|err| {
-            ::tracing::error!("{err}");
-            err
-        })?
-    };
-}
+use crate::erout;
 
 #[derive(Clone)]
 pub struct DB {
@@ -28,7 +12,7 @@ pub struct DB {
 }
 
 #[derive(DeRon, SerRon)]
-struct Record {
+pub struct Record {
     username: String,
     pubkey: String,
 }
@@ -100,6 +84,46 @@ impl DB {
         .unwrap()
     }
 
+    pub async fn fetch_record(&self, username: String) -> Option<Record> {
+        let handle = tokio::runtime::Handle::current();
+
+        let db = self.clone();
+        spawn_blocking(move || {
+            let commit_id = handle
+                .block_on(db.git.lock())
+                .find_branch(DEFAULT_BRANCH, git2::BranchType::Local)
+                .expect("Defautl Branch")
+                .into_reference()
+                .target()
+                .unwrap();
+
+            let blob_id = handle
+                .block_on(db.git.lock())
+                .find_commit(commit_id)
+                .expect("head commit")
+                .tree()
+                .unwrap()
+                .get_name(&username)?
+                .id();
+
+            let record = DeRon::deserialize_ron(
+                std::str::from_utf8(
+                    handle
+                        .block_on(db.git.lock())
+                        .find_blob(blob_id)
+                        .unwrap()
+                        .content(),
+                )
+                .expect("Utf-8 str"),
+            )
+            .expect("Valid record");
+
+            Some(record)
+        })
+        .await
+        .unwrap()
+    }
+
     fn init_repo(path: &str) -> Result<Repository, git2::Error> {
         tracing::info!("initializing new git database repo");
         let repo = Repository::init_bare(path).expect("OS");
@@ -122,32 +146,36 @@ impl DB {
     }
 }
 
-pub struct BitCode<T>(pub T);
+#[cfg(test)]
+mod db_tests {
+    use tokio::task::spawn_blocking;
 
-#[async_trait]
-impl<T, S> FromRequest<S> for BitCode<T>
-where
-    T: DecodeOwned,
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
+    use super::DB;
+    use std::fs;
 
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-        let bytes = Bytes::from_request(req, state)
+    #[tokio::test]
+    async fn new_record() {
+        let path = rand::random::<u64>().to_string();
+        let db = {
+            let path = path.clone();
+            spawn_blocking(move || DB::get_or_create(&path))
+                .await
+                .unwrap()
+        };
+
+        let username = "DuskyElf".to_string();
+        let pubkey = "this is a test public key".to_string();
+
+        db.new_record(username.clone(), pubkey.clone()).await;
+
+        let record = db
+            .fetch_record(username.clone())
             .await
-            .map_err(|_| StatusCode::BAD_REQUEST)?;
+            .expect("implementation");
 
-        Ok(Self(
-            bitcode::decode(&bytes).map_err(|_| StatusCode::BAD_REQUEST)?,
-        ))
-    }
-}
+        assert_eq!(username, record.username);
+        assert_eq!(pubkey, record.pubkey);
 
-impl<T> IntoResponse for BitCode<T>
-where
-    T: Encode,
-{
-    fn into_response(self) -> Response {
-        bitcode::encode(&self.0).into_response()
+        fs::remove_dir_all(path).unwrap();
     }
 }

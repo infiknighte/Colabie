@@ -1,3 +1,13 @@
+mod db;
+mod errors;
+mod utils;
+
+use db::DB;
+use errors::*;
+pub use utils::BitCode;
+
+use schemou::*;
+
 use axum::{
     extract::State,
     http::{header, Method},
@@ -7,9 +17,6 @@ use axum::{
 use base64::{prelude::BASE64_STANDARD, Engine};
 use tower_http::{cors, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-use registrie::*;
-use schemou::*;
 
 const DB_PATH: &str = "db";
 
@@ -51,7 +58,7 @@ async fn main() {
 async fn register(
     State(db): State<DB>,
     BitCode(register_req): BitCode<RegisterReq>,
-) -> BitCode<RegisterRes> {
+) -> RegistrieResult<BitCode<RegisterRes>> {
     // TODO: Validation of user request
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
@@ -60,5 +67,5 @@ async fn register(
         .as_bytes()
         .into();
 
-    BitCode(RegisterRes { commit_id })
+    Ok(BitCode(RegisterRes { commit_id }))
 }
