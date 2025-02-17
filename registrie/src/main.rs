@@ -59,7 +59,7 @@ async fn register(
     State(db): State<DB>,
     BitCode(register_req): BitCode<RegisterReq>,
 ) -> RegistrieResult<BitCode<RegisterRes>> {
-    // TODO: Validation of user request
+    // TODO: Validation of user requests and fields
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
         .new_record(register_req.username.into(), pubkey)

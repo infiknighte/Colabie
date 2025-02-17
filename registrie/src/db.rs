@@ -56,7 +56,7 @@ impl DB {
                     .find_commit(reference.target().unwrap())
                     .expect("head commit");
 
-                // TODO: Break registrie records into subdirs like "duskyelf" -> "du/sk/duskyelf"
+                // TODO: Break registrie records into subdirs like "duskyelf" -> "du/sk/duskyelf" [good-first-issue]
                 let mut tree_builder = repo
                     .treebuilder(Some(&last_commit.tree()?))
                     .expect("Tree building");
@@ -67,7 +67,7 @@ impl DB {
 
                 // clippy suggested code errors out - https://github.com/rust-lang/rust-clippy/issues/9794
                 #[allow(clippy::let_and_return)]
-                // TODO: Sign registrie git commits
+                // TODO: Sign registrie's git commits
                 let x = repo.commit(
                     reference.name(),
                     &sig,

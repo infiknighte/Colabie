@@ -25,13 +25,13 @@ extern "C" {
 
 #[wasm_bindgen]
 pub async fn register(username: &str) -> Result<(), JsValue> {
-    // TODO: Check if the username is already registere
+    // TODO: Check if the username is already registered
 
     // log(&format!("{:?}", load_raw("sk_key")));
 
     let (pb_key, sk_key) = generate_keypair();
 
-    // TODO: Save the private key securely in a file instead
+    // TODO: Save secret key securely in a file instead
     save_raw("sk_key", &sk_key);
 
     let register = RegisterReq {
@@ -54,7 +54,7 @@ pub async fn register(username: &str) -> Result<(), JsValue> {
     Ok(())
 }
 
-// TODO: Use more reliable hybrid cryptographic methods instead
+// TODO: Use more robust hybrid cryptographic methods instead
 fn generate_keypair() -> (Box<[u8]>, Box<[u8]>) {
     use fips204::ml_dsa_87;
     use fips204::traits::SerDes;

@@ -4,7 +4,7 @@ pub type RegistrieResult<T> = Result<T, RegistrieError>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum RegistrieError {
-    // TODO: Validation of user request
+    // TODO: Validation of user requests and fields
 }
 
 impl IntoResponse for RegistrieError {
