@@ -60,6 +60,7 @@ async fn register(
     BitCode(register_req): BitCode<RegisterReq>,
 ) -> RegistrieResult<BitCode<RegisterRes>> {
     // TODO: Validation of user requests and fields
+    // Issue URL: https://github.com/Colabie/Colabie/issues/10
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
         .new_record(register_req.username.into(), pubkey)

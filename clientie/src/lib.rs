@@ -26,12 +26,14 @@ extern "C" {
 #[wasm_bindgen]
 pub async fn register(username: &str) -> Result<(), JsValue> {
     // TODO: Check if the username is already registered
+    // Issue URL: https://github.com/Colabie/Colabie/issues/6
 
     // log(&format!("{:?}", load_raw("sk_key")));
 
     let (pb_key, sk_key) = generate_keypair();
 
     // TODO: Save secret key securely in a file instead
+    // Issue URL: https://github.com/Colabie/Colabie/issues/5
     save_raw("sk_key", &sk_key);
 
     let register = RegisterReq {
@@ -55,6 +57,7 @@ pub async fn register(username: &str) -> Result<(), JsValue> {
 }
 
 // TODO: Use more robust hybrid cryptographic methods instead
+// Issue URL: https://github.com/Colabie/Colabie/issues/4
 fn generate_keypair() -> (Box<[u8]>, Box<[u8]>) {
     use fips204::ml_dsa_87;
     use fips204::traits::SerDes;
