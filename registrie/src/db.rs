@@ -56,7 +56,8 @@ impl DB {
                     .find_commit(reference.target().unwrap())
                     .expect("head commit");
 
-                // TODO: Break registrie records into subdirs like "duskyelf" -> "du/sk/duskyelf" [good-first-issue]
+                // TODO: Break registrie records into subdirs like "duskyelf" -> "du/sk/duskyelf"
+                // labels: enhancement, good first issue
                 // Issue URL: https://github.com/Colabie/Colabie/issues/8
                 let mut tree_builder = repo
                     .treebuilder(Some(&last_commit.tree()?))
@@ -69,6 +70,7 @@ impl DB {
                 // clippy suggested code errors out - https://github.com/rust-lang/rust-clippy/issues/9794
                 #[allow(clippy::let_and_return)]
                 // TODO: Sign registrie's git commits
+                // labels: enhancement
                 // Issue URL: https://github.com/Colabie/Colabie/issues/7
                 let x = repo.commit(
                     reference.name(),
