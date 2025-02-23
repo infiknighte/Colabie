@@ -27,7 +27,7 @@ from that with rules. The community looks forward to your contributions. 🎉
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the
-[Colabie Code of Conduct](https://github.com/Colabie/Colabie/blob//CODE_OF_CONDUCT.md).
+[Colabie Code of Conduct](https://github.com/Colabie/Colabie/blob/main/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior
 to DuskyElf.
 
