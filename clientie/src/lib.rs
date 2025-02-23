@@ -1,5 +1,4 @@
-use bitcode::decode;
-use schemou::{RegisterReq, RegisterRes};
+use schemou::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::js_sys::Uint8Array;
 
@@ -26,10 +25,12 @@ extern "C" {
 #[wasm_bindgen]
 pub async fn register(username: &str) -> Result<(), JsValue> {
     // TODO: Check if the username is already registered
-    // labels: good first issue
+    // This is not trivial, needs discussion if we could hit registrie for read calls
+    // labels: help wanted
     // Issue URL: https://github.com/Colabie/Colabie/issues/6
 
-    // log(&format!("{:?}", load_raw("sk_key")));
+    let username = legos::ShortIdStr::new(username)
+        .map_err(|e| JsValue::from_str(&format!("Invalid username: {e}")))?;
 
     let (pb_key, sk_key) = generate_keypair();
 
@@ -39,14 +40,14 @@ pub async fn register(username: &str) -> Result<(), JsValue> {
     save_raw("sk_key", &sk_key);
 
     let register = RegisterReq {
-        username: username.into(),
+        username,
         pubkey: pb_key,
     };
 
-    let resp: RegisterRes = decode(
+    let (resp, _) = RegisterRes::deserialize(
         &post_raw(
             "http://localhost:8081/register",
-            &bitcode::encode(&register),
+            &register.serialize_buffered(),
         )
         .await?
         .to_vec(),
