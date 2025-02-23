@@ -24,6 +24,7 @@ pub trait Serde {
 pub struct RegisterReq {
     pub username: legos::ShortIdStr,
     // TODO: All schemou types should be Hardened and have explicit invarients, no generic de-serialization
+    // labels: enhancement, help wanted
     // Issue URL: https://github.com/Colabie/Colabie/issues/21
     pub pubkey: Box<[u8]>,
 }

@@ -25,7 +25,8 @@ extern "C" {
 #[wasm_bindgen]
 pub async fn register(username: &str) -> Result<(), JsValue> {
     // TODO: Check if the username is already registered
-    // labels: good first issue
+    // This is not trivial, needs discussion if we could hit registrie for read calls
+    // labels: help wanted
     // Issue URL: https://github.com/Colabie/Colabie/issues/6
 
     let username = legos::ShortIdStr::new(username)

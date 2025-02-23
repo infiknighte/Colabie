@@ -59,9 +59,6 @@ async fn register(
     State(db): State<DB>,
     Schemou(register_req): Schemou<RegisterReq>,
 ) -> RegistrieResult<Schemou<RegisterRes>> {
-    // TODO: Validation of user requests and fields
-    // labels: help wanted
-    // Issue URL: https://github.com/Colabie/Colabie/issues/10
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
         .new_record((*register_req.username).clone(), pubkey)
