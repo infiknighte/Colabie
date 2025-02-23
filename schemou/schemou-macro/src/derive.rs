@@ -65,6 +65,7 @@ fn impl_struct(name: &syn::Ident, syn::DataStruct { fields, .. }: &syn::DataStru
             #[inline]
             pub fn serialize_buffered(&self) -> Vec<u8> {
                 // TODO: preallocate
+                // Issue URL: https://github.com/Colabie/Colabie/issues/20
                 let mut data = vec![];
                 _ = Serde::serialize(self, &mut data);
                 data
@@ -194,6 +195,7 @@ fn impl_enum(name: &syn::Ident, syn::DataEnum { variants, .. }: &syn::DataEnum) 
             #[inline]
             pub fn serialize_buffered(&self) -> Vec<u8> {
                 // TODO: preallocate
+                // Issue URL: https://github.com/Colabie/Colabie/issues/19
                 let mut data = vec![];
                 _ = Serde::serialize(self, &mut data);
                 data
