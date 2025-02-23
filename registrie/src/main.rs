@@ -4,7 +4,7 @@ mod utils;
 
 use db::DB;
 use errors::*;
-pub use utils::BitCode;
+pub use utils::Schemou;
 
 use schemou::*;
 
@@ -57,17 +57,17 @@ async fn main() {
 
 async fn register(
     State(db): State<DB>,
-    BitCode(register_req): BitCode<RegisterReq>,
-) -> RegistrieResult<BitCode<RegisterRes>> {
+    Schemou(register_req): Schemou<RegisterReq>,
+) -> RegistrieResult<Schemou<RegisterRes>> {
     // TODO: Validation of user requests and fields
     // labels: help wanted
     // Issue URL: https://github.com/Colabie/Colabie/issues/10
     let pubkey = BASE64_STANDARD.encode(&register_req.pubkey);
     let commit_id = db
-        .new_record(register_req.username.into(), pubkey)
+        .new_record((*register_req.username).clone(), pubkey)
         .await
         .as_bytes()
         .into();
 
-    Ok(BitCode(RegisterRes { commit_id }))
+    Ok(Schemou(RegisterRes { commit_id }))
 }
